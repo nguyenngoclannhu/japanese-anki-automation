@@ -15,7 +15,7 @@ Usage:
 
 import argparse
 import csv
-import json
+import re
 import sys
 import requests
 
@@ -137,7 +137,7 @@ def build_note(row, deck_name):
             "Kanji":       row.get(COL_KANJI, "").strip(),
             "Reading":     row.get(COL_READING, "").strip(),
             "Meaning":     row.get(COL_MEANING, "").strip(),
-            "Sentence":    row.get(COL_SENTENCE, "").strip(),
+            "Sentence":    strip_marker(row.get(COL_SENTENCE, "").strip()),
             "Translation": row.get(COL_TRANSLATION, "").strip(),
         },
         "tags": tags,
@@ -146,6 +146,11 @@ def build_note(row, deck_name):
             "duplicateScope": "deck",
         },
     }
+
+
+def strip_marker(sentence):
+    """Remove [ ] markers from sentence, keeping the text inside."""
+    return re.sub(r"\[([^\]]+)\]", r"\1", sentence)
 
 
 def validate_row(row, line_num):
