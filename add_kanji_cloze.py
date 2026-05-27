@@ -78,20 +78,20 @@ hr { border: none; border-top: 1px solid #ecf0f1; margin: 16px 0; }
 """
 
 FRONT_BACK = """
-<div class="kanji-header">{{c1::{{Kanji}}}}</div>
+<div class="kanji-header">{{Kanji}}</div>
 <div class="meaning-header">{{Meaning}}</div>
 <hr>
 
 <div class="label">Reading</div>
-<div class="reading">{{c2::{{Reading}}}}</div>
+<div class="reading">{{Reading}}}}</div>
 
 <hr>
 
 <div class="label">Vocabulary 1</div>
 <div class="vocab-block">
-  <div class="vocab-word">{{c3::{{Vocab1}}}}</div>
-  <div class="vocab-reading">{{c4::{{Reading1}}}}</div>
-  <div class="vocab-meaning">{{c5::{{Meaning1}}}}</div>
+  <div class="vocab-word">{{Vocab1}}</div>
+  <div class="vocab-reading">{{Reading1}}</div>
+  <div class="vocab-meaning">{{Meaning1}}</div>
   <div class="sentence">{{Sentence1}}</div>
 </div>
 
@@ -174,6 +174,7 @@ def inject_cloze(sentence, cloze_num):
     which word should be blanked — no stem guessing needed.
     Raises ValueError if no marker is found.
     """
+    print(sentence)
     match = re.search(r"\[([^\]]+)\]", sentence)
     if not match:
         raise ValueError(f"No [marker] found in sentence: {sentence!r}")
@@ -210,6 +211,68 @@ def build_note(row, deck_name):
         },
     }
 
+def build_text(row):
+    sentence_1 = inject_cloze(row["sentence_1"].strip(), 3)
+    sentence_2 = inject_cloze(row["sentence_2"].strip(), 6)
+    Kanji=f"c1::{row['kanji'].strip()}"
+    Meaning= f"c9::{row['meaning'].strip()}"
+    Reading = f"c2::{row['reading'].strip()}"
+    Vocab1 = f"c3::{row['vocab_1'].strip()}"
+    Reading1 = f"c4::{row['reading_1'].strip()}"
+    Meaning1 = f"c5::{row['meaning_1'].strip()}"
+    Sentence1 = sentence_1
+    Vocab2 = f"c6::{row['vocab_2'].strip()}"
+    Reading2= f"c7::{row['reading_2'].strip()}"
+    Meaning2= f"c8::{row['meaning_2'].strip()}"
+    Sentence2 = sentence_2
+    
+    template = f"""
+    <div class="kanji-header">{{{{{Kanji}}}}}</div>
+    <div class="meaning-header">{{{{{Meaning}}}}}</div>
+    <hr>
+
+    <div class="label">Reading</div>
+    <div class="reading">{{{{{Reading}}}}}</div>
+
+    <hr>
+
+    <div class="label">Vocabulary 1</div>
+    <div class="vocab-block">
+    <div class="vocab-word">{{{{{Vocab1}}}}}</div>
+    <div class="vocab-reading">{{{{{Reading1}}}}}</div>
+    <div class="vocab-meaning">{{{{{Meaning1}}}}}</div>
+    <div class="sentence">{Sentence1}</div>
+    </div>
+
+    <div class="label">Vocabulary 2</div>
+    <div class="vocab-block">
+    <div class="vocab-word">{{{{{Vocab2}}}}}</div>
+    <div class="vocab-reading">{{{{{Reading2}}}}}</div>
+    <div class="vocab-meaning">{{{{{Meaning2}}}}}</div>
+    <div class="sentence">{Sentence2}</div>
+    </div>
+    """
+    return template
+
+    
+
+def build_cloze_note(row, deck_name):
+    tags = [t.strip() for t in row.get("tags", "").split(",") if t.strip()]
+
+    return {
+        "deckName": deck_name,
+        "modelName": "Cloze",
+        "fields": {
+            "Text": build_text(row),
+            "Back Extra": ""
+        },
+        "tags": tags,
+        "options": {
+            "allowDuplicate": False,
+            "duplicateScope": "deck",
+        },
+    }    
+
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
@@ -238,16 +301,16 @@ def main():
         for i, row in enumerate(rows, start=2):
             if not validate_row(row, i):
                 continue
-            note = build_note(row, args.deck)
+            note = build_cloze_note(row, args.deck)
             f = note["fields"]
-            print(f"  Kanji:    {row['kanji']} ({row['reading']}) — {row['meaning']}")
-            print(f"  Vocab 1:  {row['vocab_1']} ({row['reading_1']}) — {row['meaning_1']}")
-            print(f"  Sent  1:  {f['Sentence1']}")
-            print(f"  Vocab 2:  {row['vocab_2']} ({row['reading_2']}) — {row['meaning_2']}")
-            print(f"  Sent  2:  {f['Sentence2']}")
-            print(f"  Tags:     {', '.join(note['tags']) or '—'}")
-            print(f"  Cards:    c1 kanji · c2 reading · c3-c5 vocab1 · c6-c8 vocab2")
-            print()
+            # print(f"  Kanji:    {row['kanji']} ({row['reading']}) — {row['meaning']}")
+            # print(f"  Vocab 1:  {row['vocab_1']} ({row['reading_1']}) — {row['meaning_1']}")
+            # print(f"  Sent  1:  {f['Sentence1']}")
+            # print(f"  Vocab 2:  {row['vocab_2']} ({row['reading_2']}) — {row['meaning_2']}")
+            # print(f"  Sent  2:  {f['Sentence2']}")
+            # print(f"  Tags:     {', '.join(note['tags']) or '—'}")
+            # print(f"  Cards:    c1 kanji · c2 reading · c3-c5 vocab1 · c6-c8 vocab2")
+            print(f)
         print("Run without --dry-run to add cards.")
         return
 
@@ -262,7 +325,7 @@ def main():
             skipped += 1
             continue
 
-        note = build_note(row, args.deck)
+        note = build_cloze_note(row, args.deck)
         kanji = row["kanji"]
 
         try:
