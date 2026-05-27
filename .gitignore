@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+noji-tts/node_modules/
+noji-tts/.chrome-profile/

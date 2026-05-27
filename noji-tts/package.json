@@ -1,0 +1,12 @@
+{
+  "name": "noji-tts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tts.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}
