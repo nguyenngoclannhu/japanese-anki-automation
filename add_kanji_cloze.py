@@ -144,8 +144,8 @@ def ensure_note_type():
         cardTemplates=[
             {
                 "Name": "Kanji Cloze",
-                "Front": "{{cloze:Kanji}}\n" + FRONT_BACK,
-                "Back":  "{{cloze:Kanji}}\n" + FRONT_BACK,
+                "Front": "{{furigana:cloze:Text}}",
+                "Back":  "{{furigana:cloze:Text}}<br>\n{{Back Extra}}",
             }
         ],
     )
@@ -169,15 +169,15 @@ def validate_row(row, line_num):
 
 def inject_cloze(sentence, cloze_num):
     """
-    Replace [marked text] in sentence with {{cN::marked text}}.
-    The marker [] is written by the user in the CSV to explicitly mark
+    Replace **marked text** in sentence with {{cN::marked text}}.
+    The marker ** ** is written by the user in the CSV to explicitly mark
     which word should be blanked — no stem guessing needed.
     Raises ValueError if no marker is found.
     """
     print(sentence)
-    match = re.search(r"\[([^\]]+)\]", sentence)
+    match = re.search(r"\*\*([^\*\*]+)\*\*", sentence)
     if not match:
-        raise ValueError(f"No [marker] found in sentence: {sentence!r}")
+        raise ValueError(f"No **marker** found in sentence: {sentence!r}")
     inner = match.group(1)
     return sentence[:match.start()] + f"{{{{c{cloze_num}::{inner}}}}}" + sentence[match.end():]
 
