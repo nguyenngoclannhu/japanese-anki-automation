@@ -6,6 +6,7 @@ import readline from 'readline';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const USER_DATA_DIR = path.join(__dirname, '.chrome-profile');
 const DECK_URL = process.env.DECK_URL || 'https://noji.io/deck/35476809';
+const SKIP_TIME = process.env.SKIP || 1;
 
 function log(...a) { console.log('[TTS]', ...a); }
 function prompt(q) {
@@ -113,7 +114,7 @@ async function main() {
     const elem = handle.asElement();
     if (!elem) throw new Error(`${label}: handle is null`);
     await elem.scrollIntoViewIfNeeded();
-    await elem.click({ timeout: 5000 });
+    await elem.click({ timeout: 10000 });
   }
 
   async function selectParagraphContents(pHandle) {
@@ -210,7 +211,7 @@ async function main() {
       break;
     }
     if (prog.cur >= prog.total) { log('Reached last card. Done.'); break; }
-    try { await goNext(prog.cur); }
+    try { for(let i = 0; i < SKIP_TIME; i++) { await goNext(prog.cur);} }
     catch (e) { console.error('[TTS] next failed:', e.message); break; }
   }
 
